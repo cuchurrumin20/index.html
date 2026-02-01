@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>💘 A Question for You</title>
+  <style>
+    :root{
+      --bg1:#ffdde1;
+      --bg2:#ee9ca7;
+      --card:#ffffffcc;
+      --text:#2b2b2b;
+      --yes:#ff4d6d;
+      --yes2:#ff8fab;
+      --no:#6c757d;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(circle at top, var(--bg1), var(--bg2));
+      overflow:hidden;
+    }
+    .hearts{
+      position:fixed; inset:0; pointer-events:none; opacity:.25;
+      background-image:
+        radial-gradient(circle at 10% 20%, #fff 0 2px, transparent 3px),
+        radial-gradient(circle at 80% 30%, #fff 0 2px, transparent 3px),
+        radial-gradient(circle at 30% 80%, #fff 0 2px, transparent 3px),
+        radial-gradient(circle at 70% 75%, #fff 0 2px, transparent 3px);
+      filter: blur(.2px);
+      animation: float 6s ease-in-out infinite alternate;
+    }
+    @keyframes float { from{transform:translateY(0)} to{transform:translateY(-12px)} }
+
+    .card{
+      width:min(560px, 92vw);
+      padding:28px 22px;
+      border-radius:24px;
+      background:var(--card);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 18px 55px rgba(0,0,0,.18);
+      text-align:center;
+      position:relative;
+    }
+    h1{
+      margin:0 0 10px;
+      font-size: clamp(28px, 5vw, 44px);
+      letter-spacing:.2px;
+    }
+    p{
+      margin:0 0 18px;
+      font-size: clamp(14px, 2.5vw, 18px);
+      line-height:1.4;
+    }
+    .name{
+      font-weight:700;
+      color:#c9184a;
+    }
+
+    .buttons{
+      display:flex;
+      justify-content:center;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      position:relative;
+      min-height:64px;
+    }
+    button{
+      border:0;
+      padding:14px 18px;
+      font-size:18px;
+      border-radius:14px;
+      cursor:pointer;
+      transition: transform .12s ease, filter .12s ease;
+      user-select:none;
+      touch-action: manipulation;
+    }
+    button:active{ transform: scale(.98) }
+    #yesBtn{
+      background: linear-gradient(135deg, var(--yes), var(--yes2));
+      color:white;
+      box-shadow: 0 10px 25px rgba(255, 77, 109, .35);
+      font-weight:700;
+      min-width:160px;
+    }
+    #yesBtn:hover{ filter:brightness(1.05) }
+
+    #noBtn{
+      background: #e9ecef;
+      color:#3c3c3c;
+      min-width:140px;
+      position:relative; /* will switch to absolute when it starts dodging */
+    }
+
+    .footer{
+      margin-top:18px;
+      font-size:13px;
+      opacity:.85;
+    }
+
+    /* Modal */
+    .modal{
+      position:fixed; inset:0;
+      display:none;
+      place-items:center;
+      background: rgba(0,0,0,.35);
+      padding:16px;
+      z-index:50;
+    }
+    .modalInner{
+      width:min(520px, 92vw);
+      background:white;
+      border-radius:22px;
+      padding:22px 18px;
+      text-align:center;
+      box-shadow: 0 22px 70px rgba(0,0,0,.25);
+    }
+    .big{
+      font-size: clamp(32px, 6vw, 54px);
+      margin:0 0 8px;
+    }
+    .sub{
+      margin:0 0 14px;
+      font-size:18px;
+    }
+    .close{
+      background:#111;
+      color:#fff;
+      border-radius:14px;
+      padding:12px 16px;
+      font-weight:700;
+    }
+
+    /* Confetti pieces */
+    .confetti{
+      position:fixed;
+      width:10px; height:14px;
+      top:-20px;
+      border-radius:3px;
+      opacity:.95;
+      z-index:60;
+      pointer-events:none;
+      animation: fall linear forwards;
+    }
+    @keyframes fall{
+      to{ transform: translateY(110vh) rotate(720deg); opacity:1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hearts"></div>
+
+  <main class="card" id="card">
+    <h1>Hey <span class="name" id="gfName">my love</span> 💖</h1>
+    <p id="msg">
+      I’ve got one important question…<br/>
+      Will you be my Valentine? 🌹
+    </p>
+
+    <div class="buttons" id="btnArea">
+      <button id="yesBtn">Yes! 💘</button>
+      <button id="noBtn">No 🙈</button>
+    </div>
+
+    <div class="footer">
+      (Tip: open on mobile for maximum cuteness ✨)
+    </div>
+  </main>
+
+  <div class="modal" id="modal">
+    <div class="modalInner">
+      <p class="big">YAY!! 🥰💞</p>
+      <p class="sub" id="successText">You just made me the happiest person.</p>
+      <button class="close" id="closeBtn">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // --- Customize via URL parameters: ?name=HerName&from=YourName
+    const params = new URLSearchParams(location.search);
+    const name = params.get("name") || "my love";
+    const from = params.get("from") || "me";
+
+    document.getElementById("gfName").textContent = name;
+
+    // Optional custom message
+    const custom = params.get("msg");
+    if (custom) document.getElementById("msg").textContent = custom;
+
+    const successText = document.getElementById("successText");
+    successText.textContent = `Okay ${name}… it’s official 💍 (from ${from})`;
+
+    // --- No button dodge behavior
+    const noBtn = document.getElementById("noBtn");
+    const btnArea = document.getElementById("btnArea");
+    let dodges = 0;
+
+    function moveNoButton() {
+      dodges++;
+      // After first dodge, make it absolute inside the button area
+      noBtn.style.position = "absolute";
+
+      const areaRect = btnArea.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+
+      const maxX = areaRect.width - btnRect.width;
+      const maxY = areaRect.height - btnRect.height;
+
+      const x = Math.max(0, Math.min(maxX, Math.random() * maxX));
+      const y = Math.max(0, Math.min(maxY, Math.random() * maxY));
+
+      noBtn.style.left = x + "px";
+      noBtn.style.top = y + "px";
+
+      if (dodges === 2) noBtn.textContent = "Are you sure? 🥺";
+      if (dodges === 4) noBtn.textContent = "Hmm… try again 😅";
+      if (dodges >= 6) noBtn.textContent = "Impossible 😈";
+    }
+
+    // Dodge on hover (desktop) + on touchstart (mobile)
+    noBtn.addEventListener("mouseenter", moveNoButton);
+    noBtn.addEventListener("touchstart", (e) => { e.preventDefault(); moveNoButton(); }, {passive:false});
+    noBtn.addEventListener("click", moveNoButton);
+
+    // --- Yes -> modal + confetti
+    const yesBtn = document.getElementById("yesBtn");
+    const modal = document.getElementById("modal");
+    const closeBtn = document.getElementById("closeBtn");
+
+    function confettiBurst(count = 120) {
+      for (let i = 0; i < count; i++) {
+        const c = document.createElement("div");
+        c.className = "confetti";
+        // random color without hardcoding a palette: use hsl
+        const hue = Math.floor(Math.random() * 360);
+        c.style.background = `hsl(${hue} 85% 60%)`;
+        c.style.left = (Math.random() * 100) + "vw";
+        c.style.animationDuration = (2.2 + Math.random() * 2.2) + "s";
+        c.style.transform = `rotate(${Math.random() * 360}deg)`;
+        c.style.width = (6 + Math.random() * 10) + "px";
+        c.style.height = (8 + Math.random() * 14) + "px";
+        document.body.appendChild(c);
+        c.addEventListener("animationend", () => c.remove());
+      }
+    }
+
+    yesBtn.addEventListener("click", () => {
+      modal.style.display = "grid";
+      confettiBurst();
+    });
+
+    closeBtn.addEventListener("click", () => modal.style.display = "none");
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.style.display = "none";
+    });
+  </script>
+</body>
+</html>
