@@ -137,19 +137,19 @@
       font-weight:700;
     }
 
-    /* Confetti pieces */
-    .confetti{
-      position:fixed;
-      width:10px; height:14px;
-      top:-20px;
-      border-radius:3px;
-      opacity:.95;
-      z-index:60;
-      pointer-events:none;
-      animation: fall linear forwards;
+    /* Duck rain */
+    .duck {
+      position: fixed;
+      top: -40px;
+      z-index: 60;
+      pointer-events: none;
+      user-select: none;
+      will-change: transform;
+      animation: duckfall linear forwards;
+      filter: drop-shadow(0 10px 10px rgba(0,0,0,.15));
     }
-    @keyframes fall{
-      to{ transform: translateY(110vh) rotate(720deg); opacity:1; }
+    @keyframes duckfall {
+      to { transform: translateY(110vh) rotate(12deg); }
     }
   </style>
 </head>
@@ -157,7 +157,7 @@
   <div class="hearts"></div>
 
   <main class="card" id="card">
-    <h1>Hey <span class="name" id="gfName">my love</span> 💖</h1>
+    <h1>Hey <span class="name" id="gfName">mon amour</span> 💖</h1>
     <p id="msg">
       I’ve got one important question…<br/>
       Will you be my Valentine? 🌹
@@ -182,9 +182,9 @@
   </div>
 
   <script>
-    // --- Customize via URL parameters: ?name=HerName&from=YourName
+    // --- Customize via URL parameters: ?name=HerName&from=YourName&msg=CustomMessage
     const params = new URLSearchParams(location.search);
-    const name = params.get("name") || "my love";
+    const name = params.get("name") || "mon amour";
     const from = params.get("from") || "me";
 
     document.getElementById("gfName").textContent = name;
@@ -194,7 +194,7 @@
     if (custom) document.getElementById("msg").textContent = custom;
 
     const successText = document.getElementById("successText");
-    successText.textContent = `Okay ${name}… it’s official 💍 (from ${from})`;
+    successText.textContent = `YAY ${name}!! 💛🦆 (from ${from})`;
 
     // --- No button dodge behavior
     const noBtn = document.getElementById("noBtn");
@@ -228,31 +228,46 @@
     noBtn.addEventListener("touchstart", (e) => { e.preventDefault(); moveNoButton(); }, {passive:false});
     noBtn.addEventListener("click", moveNoButton);
 
-    // --- Yes -> modal + confetti
+    // --- Duck rain on Yes
     const yesBtn = document.getElementById("yesBtn");
     const modal = document.getElementById("modal");
     const closeBtn = document.getElementById("closeBtn");
 
-    function confettiBurst(count = 120) {
+    function duckRain(count = 55) {
+      const duckFaces = ["🦆", "🦆💛", "🦆💕", "🦆💞", "💛🦆💛", "🦆💖🦆"];
+
       for (let i = 0; i < count; i++) {
-        const c = document.createElement("div");
-        c.className = "confetti";
-        // random color without hardcoding a palette: use hsl
-        const hue = Math.floor(Math.random() * 360);
-        c.style.background = `hsl(${hue} 85% 60%)`;
-        c.style.left = (Math.random() * 100) + "vw";
-        c.style.animationDuration = (2.2 + Math.random() * 2.2) + "s";
-        c.style.transform = `rotate(${Math.random() * 360}deg)`;
-        c.style.width = (6 + Math.random() * 10) + "px";
-        c.style.height = (8 + Math.random() * 14) + "px";
-        document.body.appendChild(c);
-        c.addEventListener("animationend", () => c.remove());
+        const d = document.createElement("div");
+        d.className = "duck";
+        d.textContent = duckFaces[Math.floor(Math.random() * duckFaces.length)];
+
+        // Random position across the screen
+        d.style.left = (Math.random() * 100) + "vw";
+
+        // Random size
+        const size = 22 + Math.random() * 26; // px
+        d.style.fontSize = size + "px";
+
+        // Random fall duration
+        const duration = 2.4 + Math.random() * 2.6; // seconds
+        d.style.animationDuration = duration + "s";
+
+        // Stagger start times so it feels like rain
+        const delay = Math.random() * 0.8; // seconds
+        d.style.animationDelay = delay + "s";
+
+        // Add gentle horizontal drift + slight tilt at start
+        const drift = (Math.random() * 160) - 80; // -80..80 px
+        d.style.transform = `translateX(${drift}px) rotate(${(Math.random()*18)-9}deg)`;
+
+        document.body.appendChild(d);
+        d.addEventListener("animationend", () => d.remove());
       }
     }
 
     yesBtn.addEventListener("click", () => {
       modal.style.display = "grid";
-      confettiBurst();
+      duckRain();
     });
 
     closeBtn.addEventListener("click", () => modal.style.display = "none");
